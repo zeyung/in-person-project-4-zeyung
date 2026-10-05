@@ -3,36 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alex Johnson - Frontend Developer Portfolio</title>
+    <title>Interactive Portfolio</title>
+    <script>
+        try {
+            if (localStorage.getItem("portfolio-theme") === "dark") document.documentElement.classList.add("dark-theme");
+        } catch (error) {
+            // The page remains usable if storage is unavailable.
+        }
+    </script>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <!-- Navigation Bar -->
     <nav id="navbar">
         <div class="nav-brand">
-            <span>Alex Johnson</span>
+            <span>Portfolio</span>
         </div>
-        <ul class="nav-menu">
+        <ul class="nav-menu" id="primary-navigation">
             <li><a href="#home" class="nav-link">Home</a></li>
             <li><a href="#about" class="nav-link">About</a></li>
             <li><a href="#skills" class="nav-link">Skills</a></li>
             <li><a href="#projects" class="nav-link">Projects</a></li>
             <li><a href="#contact" class="nav-link">Contact</a></li>
         </ul>
-        <!-- Mobile menu toggle (for bonus implementation) -->
-        <div class="nav-toggle">
+        <button class="theme-toggle" type="button" aria-label="Switch to dark theme">Dark mode</button>
+        <button class="nav-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="primary-navigation">
             <span></span>
             <span></span>
             <span></span>
-        </div>
+        </button>
     </nav>
 
     <!-- Hero Section -->
     <section id="home" class="hero">
         <div class="hero-content">
-            <h1 class="hero-title">Alex Johnson</h1>
-            <p class="hero-subtitle">Frontend Developer & UI Designer</p>
-            <p class="hero-tagline">Creating beautiful, responsive web experiences with modern technologies</p>
+            <h1 class="hero-title">Your Name</h1>
+            <p class="hero-subtitle">Frontend Development Student</p>
+            <p class="hero-tagline">Learning to build thoughtful, responsive web experiences with modern technologies</p>
             <div class="hero-buttons">
                 <a href="#projects" class="btn btn-primary">View Projects</a>
                 <a href="#contact" class="btn btn-secondary">Get In Touch</a>
@@ -46,19 +53,19 @@
             <h2>About Me</h2>
             <div class="about-grid">
                 <div class="about-text">
-                    <p>I'm a passionate frontend developer with 3 years of experience creating engaging digital experiences. I specialize in React, modern CSS, and responsive design patterns that work beautifully across all devices.</p>
+                    <p>This starter portfolio demonstrates the skills and interactive features I am building as a frontend development student. Replace the sample project cards and skill levels with your own work.</p>
                     <div class="about-details">
                         <div class="detail-item">
                             <span class="detail-icon">📍</span>
-                            <span>San Francisco, CA</span>
+                            <span>Location</span>
                         </div>
                         <div class="detail-item">
                             <span class="detail-icon">✉️</span>
-                            <a href="mailto:alex@example.com">alex@example.com</a>
+                            <a href="mailto:your.email@example.com">your.email@example.com</a>
                         </div>
                         <div class="detail-item">
                             <span class="detail-icon">📱</span>
-                            <span>(555) 123-4567</span>
+                            <span>Add your phone number</span>
                         </div>
                     </div>
                 </div>
@@ -159,8 +166,9 @@
         <div class="container">
             <h2>Featured Projects</h2>
 
-            <!-- TODO: Add JavaScript to make these filter buttons interactive -->
-            <div class="filter-buttons">
+            <label class="project-search-label" for="project-search">Search project tags</label>
+            <input id="project-search" class="project-search" type="search" placeholder="Try React or CSS" autocomplete="off">
+            <div class="filter-buttons" aria-label="Filter projects by category">
                 <button class="filter-btn active" data-filter="all">All Projects</button>
                 <button class="filter-btn" data-filter="frontend">Frontend</button>
                 <button class="filter-btn" data-filter="fullstack">Full-Stack</button>
@@ -168,8 +176,8 @@
                 <button class="filter-btn" data-filter="webapp">Web App</button>
             </div>
 
+            <p class="project-count" aria-live="polite"></p>
             <div class="projects-grid">
-                <!-- TODO: Add data-category attribute for filtering -->
                 <div class="project-card featured" data-category="fullstack">
                     <div class="project-image">
                         <img src="https://via.placeholder.com/400x250/4f46e5/ffffff?text=E-Commerce+App" alt="E-Commerce Platform">
@@ -283,6 +291,12 @@
                     </div>
                 </div>
             </div>
+            <dialog class="project-dialog" aria-labelledby="dialog-title">
+                <button class="dialog-close" type="button" aria-label="Close project details">&times;</button>
+                <h3 id="dialog-title"></h3>
+                <p class="dialog-description"></p>
+                <div class="dialog-tags project-tags"></div>
+            </dialog>
         </div>
     </section>
 
@@ -291,21 +305,19 @@
         <div class="container">
             <h2>Get In Touch</h2>
             <div class="contact-content">
-                <p>I'm always interested in hearing about new opportunities and projects. Feel free to reach out!</p>
+                <p>Use this form to try the live validation interactions. It validates your message in the browser and does not send or store it.</p>
 
-                <!-- TODO: Add JavaScript to validate this form in real-time -->
-                <form id="contact-form" class="contact-form">
+                
+                <form id="contact-form" class="contact-form" novalidate>
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="name">Name *</label>
                             <input type="text" id="name" name="name" required>
-                            <!-- TODO: Add error message element here -->
                         </div>
 
                         <div class="form-group">
                             <label for="email">Email *</label>
                             <input type="email" id="email" name="email" required>
-                            <!-- TODO: Add error message element here -->
                         </div>
 
                         <div class="form-group form-group-full">
@@ -315,15 +327,14 @@
 
                         <div class="form-group form-group-full">
                             <label for="message">Message *</label>
-                            <textarea id="message" name="message" rows="5" required></textarea>
-                            <!-- TODO: Add error message element here -->
+                            <textarea id="message" name="message" rows="5" required aria-describedby="message-counter"></textarea>
+                            <span class="message-counter" id="message-counter" aria-live="polite">0 / 300</span>
                         </div>
 
                         <div class="form-group form-group-full">
                             <button type="submit" class="btn btn-primary">Send Message</button>
                         </div>
                     </div>
-                    <!-- TODO: Add success message element here -->
                 </form>
             </div>
         </div>
@@ -333,7 +344,7 @@
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
-                <p>&copy; 2024 Alex Johnson. All rights reserved.</p>
+                <p>&copy; 2026 Your Name. Update this footer with your name.</p>
                 <div class="social-links">
                     <a href="#" class="social-link">GitHub</a>
                     <a href="#" class="social-link">LinkedIn</a>
@@ -344,7 +355,6 @@
         </div>
     </footer>
 
-    <!-- TODO: Create script.js file and add JavaScript functionality -->
     <script src="script.js"></script>
 </body>
 </html>

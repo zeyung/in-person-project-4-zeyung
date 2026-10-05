@@ -1,197 +1,296 @@
-// Week 7: Interactive Portfolio
-// Your mission: Add JavaScript interactivity to your static portfolio!
+// Interactive portfolio features: navigation, projects, themes, skills, and contact validation.
 
-// ============================================
-// PART 1: SMOOTH SCROLL NAVIGATION (15 min)
-// ============================================
+let savedTheme = 'light';
+try {
+    savedTheme = localStorage.getItem('portfolio-theme') ?? 'light';
+} catch (error) {
+    // Storage can be disabled by the browser; the in-page toggle still works.
+}
+document.documentElement.classList.toggle('dark-theme', savedTheme === 'dark');
+document.body.classList.toggle('dark-theme', savedTheme === 'dark');
 
-// TODO: Select all navigation links
-// Hint: Use querySelectorAll with the class '.nav-link'
-const navLinks = null; // Replace null with your selector
+const navLinks = document.querySelectorAll('.nav-link');
+const sections = document.querySelectorAll('main section, body > section');
 
-// TODO: Add click event listeners to each nav link
-// Hint: Use forEach to loop through navLinks
-// For each link:
-//   1. Add 'click' event listener
-//   2. Prevent default link behavior (preventDefault)
-//   3. Get the href attribute to find target section
-//   4. Use scrollIntoView() to smoothly scroll to that section
+// Smoothly scroll to each section and close the mobile menu after navigation.
+navLinks.forEach((link) => {
+    link.addEventListener('click', (event) => {
+        const target = document.querySelector(link.getAttribute('href'));
+        if (!target) return;
 
-// BONUS: Update active nav link on scroll
-// TODO: Add scroll event listener to window
-// Hint: As user scrolls, highlight the nav link for the current section
+        event.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        navMenu?.classList.remove('active');
+        navToggle?.classList.remove('active');
+        navToggle?.setAttribute('aria-expanded', 'false');
+    });
+});
 
+// Highlight the navigation link for the section currently in view.
+function updateActiveNavigation() {
+    const scrollPosition = window.scrollY + 120;
+    let currentSection = sections[0];
 
-// ============================================
-// PART 2: PROJECT FILTERING (20 min)
-// ============================================
+    sections.forEach((section) => {
+        if (scrollPosition >= section.offsetTop) currentSection = section;
+    });
 
-// TODO: Select all filter buttons
-// Hint: Use querySelectorAll with the class '.filter-btn'
-const filterButtons = null; // Replace null with your selector
+    navLinks.forEach((link) => {
+        const isActive = link.getAttribute('href') === `#${currentSection?.id}`;
+        link.classList.toggle('active', isActive);
+        if (isActive) link.setAttribute('aria-current', 'location');
+        else link.removeAttribute('aria-current');
+    });
+}
 
-// TODO: Select all project cards
-// Hint: Use querySelectorAll with the class '.project-card'
-const projectCards = null; // Replace null with your selector
+window.addEventListener('scroll', updateActiveNavigation, { passive: true });
+updateActiveNavigation();
 
-// TODO: Add click event listeners to filter buttons
-// For each button:
-//   1. Add 'click' event listener
-//   2. Remove 'active' class from all buttons
-//   3. Add 'active' class to clicked button
-//   4. Get the data-filter attribute from clicked button
-//   5. Filter project cards based on their data-category attribute
-//      - If filter is 'all', show all cards
-//      - Otherwise, show only cards matching the filter
-//   6. Use style.display to show ('block') or hide ('none') cards
+// Filter projects by the selected category and by any matching technology tag.
+const filterButtons = document.querySelectorAll('.filter-btn');
+const projectCards = document.querySelectorAll('.project-card');
+const projectCount = document.querySelector('.project-count');
+const projectSearch = document.querySelector('#project-search');
+let activeCategory = document.querySelector('.filter-btn.active')?.dataset.filter ?? 'all';
 
-// Hint: To get a data attribute, use element.dataset.filter or element.getAttribute('data-filter')
+function applyFilters() {
+    const query = projectSearch?.value.trim().toLowerCase() ?? '';
+    let visibleCount = 0;
 
+    projectCards.forEach((card) => {
+        const categoryMatches = activeCategory === 'all' || card.dataset.category === activeCategory;
+        const tagMatches = !query || Array.from(card.querySelectorAll('.project-tag'))
+            .some((tag) => tag.textContent.toLowerCase().includes(query));
+        const isVisible = categoryMatches && tagMatches;
 
-// ============================================
-// PART 3: MOBILE MENU TOGGLE (10 min)
-// ============================================
+        card.hidden = !isVisible;
+        if (isVisible) visibleCount += 1;
+    });
 
-// TODO: Select the mobile menu toggle button
-// Hint: Use querySelector with the class '.nav-toggle'
-const navToggle = null; // Replace null with your selector
+    if (projectCount) {
+        projectCount.textContent = `Showing ${visibleCount} of ${projectCards.length} projects`;
+    }
+}
 
-// TODO: Select the navigation menu
-// Hint: Use querySelector with the class '.nav-menu'
-const navMenu = null; // Replace null with your selector
+filterButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+        filterButtons.forEach((item) => item.classList.remove('active'));
+        button.classList.add('active');
+        activeCategory = button.dataset.filter;
+        applyFilters();
+    });
+});
 
-// TODO: Add click event listener to toggle button
-// When clicked:
-//   1. Toggle 'active' class on navMenu
-//   2. Toggle 'active' class on navToggle (for hamburger animation)
+projectSearch?.addEventListener('input', applyFilters);
+applyFilters();
 
-// BONUS: Close menu when a nav link is clicked
-// TODO: Add click listeners to nav links to close the mobile menu
+// Mobile navigation toggle.
+const navToggle = document.querySelector('.nav-toggle');
+const navMenu = document.querySelector('.nav-menu');
 
+navToggle?.addEventListener('click', () => {
+    const isOpen = navMenu?.classList.toggle('active') ?? false;
+    navToggle.classList.toggle('active', isOpen);
+    navToggle.setAttribute('aria-expanded', String(isOpen));
+    navToggle.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
+});
 
-// ============================================
-// PART 4: SKILL ANIMATIONS (15 min)
-// ============================================
+// Restore and toggle the user's saved color theme.
+const themeToggle = document.querySelector('.theme-toggle');
 
-// TODO: Select all skill progress bars
-// Hint: Use querySelectorAll with the class '.skill-progress'
-const skillBars = null; // Replace null with your selector
+function setTheme(theme) {
+    document.documentElement.classList.toggle('dark-theme', theme === 'dark');
+    document.body.classList.toggle('dark-theme', theme === 'dark');
+    if (!themeToggle) return;
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    themeToggle.textContent = `${nextTheme === 'dark' ? 'Dark' : 'Light'} mode`;
+    themeToggle.setAttribute('aria-label', `Switch to ${nextTheme} theme`);
+}
 
-// TODO: Create a function to animate skills when they come into view
-// Hint: Add a scroll event listener
-// When skills section is visible:
-//   1. For each skill bar, animate its width from 0 to the --skill-level value
-//   2. Use the style property to set the width
-//   3. Add a CSS transition for smooth animation
+setTheme(savedTheme);
 
-// Advanced: Use Intersection Observer for better performance (optional)
+themeToggle?.addEventListener('click', () => {
+    const nextTheme = document.documentElement.classList.contains('dark-theme') ? 'light' : 'dark';
+    setTheme(nextTheme);
+    try {
+        localStorage.setItem('portfolio-theme', nextTheme);
+    } catch (error) {
+        // Keep the current theme for this page session if storage is unavailable.
+    }
+});
 
+// Animate skill bars the first time the skills section enters the viewport.
+const skillBars = document.querySelectorAll('.skill-progress');
+const skillsSection = document.querySelector('#skills');
 
-// ============================================
-// PART 5: FORM VALIDATION (20 min)
-// ============================================
+function animateSkills() {
+    skillBars.forEach((bar) => {
+        bar.style.width = bar.style.getPropertyValue('--skill-level');
+    });
+}
 
-// TODO: Select the contact form
-// Hint: Use querySelector with the id '#contact-form'
-const contactForm = null; // Replace null with your selector
+if ('IntersectionObserver' in window && skillsSection) {
+    const skillsObserver = new IntersectionObserver((entries, observer) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+            animateSkills();
+            observer.disconnect();
+        }
+    }, { threshold: 0.15 });
+    skillsObserver.observe(skillsSection);
+} else {
+    window.addEventListener('scroll', () => {
+        if (skillsSection && skillsSection.getBoundingClientRect().top < window.innerHeight) {
+            animateSkills();
+        }
+    }, { passive: true });
+}
 
-// TODO: Select form inputs
-const nameInput = null; // querySelector for #name
-const emailInput = null; // querySelector for #email
-const messageInput = null; // querySelector for #message
+// Reusable project details panel populated from the selected card.
+const projectDialog = document.querySelector('.project-dialog');
+const dialogTitle = projectDialog?.querySelector('#dialog-title');
+const dialogDescription = projectDialog?.querySelector('.dialog-description');
+const dialogTags = projectDialog?.querySelector('.dialog-tags');
+const dialogClose = projectDialog?.querySelector('.dialog-close');
 
-// TODO: Create validation functions
+function openProjectDetails(card) {
+    if (!projectDialog || !dialogTitle || !dialogDescription || !dialogTags) return;
+    dialogTitle.textContent = card.querySelector('.project-title')?.textContent ?? 'Project details';
+    dialogDescription.textContent = card.querySelector('.project-description')?.textContent ?? '';
+    dialogTags.replaceChildren();
+    card.querySelectorAll('.project-tag').forEach((tag) => {
+        const tagCopy = document.createElement('span');
+        tagCopy.className = 'project-tag';
+        tagCopy.textContent = tag.textContent;
+        dialogTags.appendChild(tagCopy);
+    });
+    projectDialog.showModal();
+}
 
-// Function to validate email format
+projectCards.forEach((card) => {
+    card.tabIndex = 0;
+    card.setAttribute('aria-label', `View details for ${card.querySelector('.project-title')?.textContent ?? 'project'}`);
+    card.addEventListener('click', (event) => {
+        if (event.target.closest('a[href="#"]')) {
+            event.preventDefault();
+            openProjectDetails(card);
+            return;
+        }
+        if (event.target.closest('a')) return;
+        openProjectDetails(card);
+    });
+    card.addEventListener('keydown', (event) => {
+        if ((event.key === 'Enter' || event.key === ' ') && event.target === card) {
+            event.preventDefault();
+            openProjectDetails(card);
+        }
+    });
+});
+
+dialogClose?.addEventListener('click', () => projectDialog?.close());
+projectDialog?.addEventListener('click', (event) => {
+    if (event.target === projectDialog) projectDialog.close();
+});
+
+// Contact form validation with live feedback and a 300-character message limit.
+const contactForm = document.querySelector('#contact-form');
+const nameInput = document.querySelector('#name');
+const emailInput = document.querySelector('#email');
+const messageInput = document.querySelector('#message');
+const messageCounter = document.querySelector('#message-counter');
+let successTimer;
+
 function isValidEmail(email) {
-    // Hint: Use a simple regex or check for @ and .
-    // Example: return email.includes('@') && email.includes('.');
-    return false; // Replace with actual validation
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 }
 
-// Function to show error message
-function showError(input, message) {
-    // TODO:
-    // 1. Create a span element for error message
-    // 2. Set its textContent to the message
-    // 3. Add a class 'error-message' for styling
-    // 4. Append it after the input field
-    // Hint: Use createElement, classList.add, and appendChild
-}
-
-// Function to clear error message
 function clearError(input) {
-    // TODO:
-    // 1. Find the error message element (next sibling)
-    // 2. Remove it from the DOM
-    // Hint: Use querySelector or nextElementSibling and remove()
+    input.parentElement?.querySelector('.error-message')?.remove();
+    input.classList.remove('error');
+    input.removeAttribute('aria-invalid');
 }
 
-// TODO: Add 'input' event listeners for real-time validation
-// For name input:
-//   - Check if value length > 0
-//   - Show/clear error accordingly
+function showError(input, message) {
+    clearError(input);
+    const error = document.createElement('span');
+    error.className = 'error-message';
+    error.textContent = message;
+    input.classList.add('error');
+    input.setAttribute('aria-invalid', 'true');
+    input.parentElement?.appendChild(error);
+}
 
-// For email input:
-//   - Check if email is valid using isValidEmail()
-//   - Show/clear error accordingly
+function showSuccess(input) {
+    clearError(input);
+    input.classList.add('success');
+}
 
-// For message input:
-//   - Check if value length > 10
-//   - Show/clear error accordingly
+function validateName() {
+    if (nameInput.value.trim().length < 2) {
+        showError(nameInput, 'Name must be at least 2 characters.');
+        return false;
+    }
+    showSuccess(nameInput);
+    return true;
+}
 
-// TODO: Add 'submit' event listener to form
-// When submitted:
-//   1. Prevent default form submission
-//   2. Validate all fields
-//   3. If all valid:
-//      - Show success message
-//      - Clear form fields
-//   4. If invalid:
-//      - Show error messages
-//      - Don't submit
+function validateEmail() {
+    if (!isValidEmail(emailInput.value)) {
+        showError(emailInput, 'Please enter a valid email address.');
+        return false;
+    }
+    showSuccess(emailInput);
+    return true;
+}
 
+function validateMessage() {
+    const length = messageInput.value.trim().length;
+    const rawLength = messageInput.value.length;
+    if (messageCounter) {
+        messageCounter.textContent = `${rawLength} / 300`;
+        messageCounter.classList.toggle('error', rawLength > 300);
+    }
+    if (length < 10) {
+        showError(messageInput, 'Message must be at least 10 characters.');
+        return false;
+    }
+    if (rawLength > 300) {
+        showError(messageInput, 'Message must be 300 characters or fewer.');
+        return false;
+    }
+    showSuccess(messageInput);
+    return true;
+}
 
-// ============================================
-// EXTENSION ACTIVITIES (after Parts 1 to 5)
-// ============================================
+nameInput?.addEventListener('input', validateName);
+emailInput?.addEventListener('input', validateEmail);
+messageInput?.addEventListener('input', validateMessage);
 
-// See the README's "Extension Activities" section: three tiers of tasks with
-// the requirement, what done looks like, one hint, and why it matters.
-// No code is given for them on purpose. Add your extension code below Part 5.
+contactForm?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const nameIsValid = validateName();
+    const emailIsValid = validateEmail();
+    const messageIsValid = validateMessage();
+    const isValid = nameIsValid && emailIsValid && messageIsValid;
+    if (!isValid) return;
 
+    contactForm.querySelector('.success-message')?.remove();
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.setAttribute('role', 'status');
+    successMessage.textContent = 'Thank you! Your message has been validated successfully.';
+    contactForm.appendChild(successMessage);
 
-// ============================================
-// HELPFUL TIPS & REMINDERS
-// ============================================
-
-// DOM Selection:
-// - querySelector() returns first matching element
-// - querySelectorAll() returns NodeList of all matching elements
-// - Use forEach() to loop through NodeList
-
-// Event Listeners:
-// - addEventListener('event', function)
-// - Common events: 'click', 'submit', 'input', 'scroll'
-// - Use event.preventDefault() to stop default behavior
-
-// Class Manipulation:
-// - classList.add('classname')
-// - classList.remove('classname')
-// - classList.toggle('classname')
-
-// Style Manipulation:
-// - element.style.property = 'value'
-// - element.style.display = 'none' or 'block'
-
-// Data Attributes:
-// - HTML: data-category="frontend"
-// - JS: element.dataset.category or element.getAttribute('data-category')
-
-// Creating Elements:
-// - document.createElement('tagname')
-// - element.textContent = 'text'
-// - element.classList.add('classname')
-// - parentElement.appendChild(element)
-
-// Good luck! Remember to test frequently and use console.log() to debug!
+    window.clearTimeout(successTimer);
+    successTimer = window.setTimeout(() => {
+        contactForm.reset();
+        contactForm.querySelector('.success-message')?.remove();
+        [nameInput, emailInput, messageInput].forEach((input) => {
+            clearError(input);
+            input.classList.remove('success');
+        });
+        if (messageCounter) {
+            messageCounter.textContent = '0 / 300';
+            messageCounter.classList.remove('error');
+        }
+    }, 3000);
+});
